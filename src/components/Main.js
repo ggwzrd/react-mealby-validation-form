@@ -16,6 +16,8 @@ const AppComponent = React.createClass({
       <div className="index">
         <Form defaultData={data}>
           <TextField name="first_name"/>
+          <TextField name="first_name"/>
+          <TextField name="email"/>
           <TextField name="email"/>
         </Form>
       </div>

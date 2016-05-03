@@ -23,7 +23,13 @@ const Form = React.createClass({
     console.log(this.inputs); // eslint-disable-line
   },
   subscribeInput: function(name, inputComponent){
-    this.inputs[name] = inputComponent;
+    if(!(name in this.inputs)){  
+        this.inputs[name] = inputComponent;
+        this.inputs[name].setState({value: this.props.defaultData[name]}) ;
+    }else{
+        console.log('%c !Component '+this.inputs[name].props.name+' already exist', "color: #ff0000"); // eslint-disable-line
+    }
+      
   },
   unsubscribeInput: function(name){
     this.inputs[name] = null;
