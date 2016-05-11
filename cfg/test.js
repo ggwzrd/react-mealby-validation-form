@@ -9,7 +9,7 @@ let baseConfig = require('./base');
 let BowerWebpackPlugin = require('bower-webpack-plugin');
 
 module.exports = {
-  devtool: 'eval',
+  devtool: 'inline-source-map',
   module: {
     preLoaders: [
       {
@@ -34,9 +34,18 @@ module.exports = {
             path.join(__dirname, '/../src'),
             path.join(__dirname, '/../test')
           ]
-        )
+        ),
+        query: {
+          presets: ['airbnb']
+        }
       }
     ]
+  },
+  externals: {
+    'cheerio': 'window',
+    'react/addons': true,
+    'react/lib/ExecutionEnvironment': true,
+    'react/lib/ReactContext': true
   },
   resolve: {
     extensions: [ '', '.js', '.jsx' ],
