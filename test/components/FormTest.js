@@ -23,18 +23,21 @@ describe('<Form />', () => {
     );
   });
 
-  it('it subscribes inputs', () => {
+  it('has inputs', () => {
     const renderedForm = tree.instance();
-  
     expect(renderedForm.inputs).to.be.an('object');
+  })
+
+  it('should be able to subscribe inputs', () => {
+    const renderedForm = tree.instance();
     expect(renderedForm.inputs).to.have.property('test-field');
   });
 
-  it('it unsubscribes inputs', () => {
+  it('should be able to unsubscribe inputs', () => {
+    // remove child DummyInput
     tree.setProps({children: undefined});
 
     const renderedForm = tree.instance();
-    expect(renderedForm.inputs).to.be.an('object');
     expect(renderedForm.inputs).not.to.have.property('test-field');
   });
 });
