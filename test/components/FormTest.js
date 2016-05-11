@@ -8,28 +8,35 @@
 // const TestUtils = React.addons.TestUtils;
 
 import React from 'react';
-import ReactTestUtils from 'react-addons-test-utils';
-import { render } from 'enzyme';
+import { mount } from 'enzyme';
 import Form from 'components/Form';
 
 describe('<Form />', () => {
 
-  it('it can subscribe inputs', () => {
-    const tree = ReactTestUtils.renderIntoDocument(
+  let tree;
+
+  beforeEach(() => {
+    tree =  mount(
       <Form>
         <DummyInput/>
       </Form>
     );
+  });
 
-    const renderedForm = ReactTestUtils.findRenderedComponentWithType(
-      tree,
-      Form
-    );
-
+  it('it subscribes inputs', () => {
+    const renderedForm = tree.instance();
+  
     expect(renderedForm.inputs).to.be.an('object');
     expect(renderedForm.inputs).to.have.property('test-field');
   });
 
+  it('it unsubscribes inputs', () => {
+    tree.setProps({children: undefined});
+
+    const renderedForm = tree.instance();
+    expect(renderedForm.inputs).to.be.an('object');
+    expect(renderedForm.inputs).not.to.have.property('test-field');
+  });
 });
 
 const DummyInput = React.createClass({
@@ -43,9 +50,6 @@ const DummyInput = React.createClass({
     this.context.form.unsubscribeInput('test-field');
   },
   render: function() {
-    return null;
+    return <span/>;
   }
 });
-
-
-

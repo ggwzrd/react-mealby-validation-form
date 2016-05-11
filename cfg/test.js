@@ -38,17 +38,20 @@ module.exports = {
         query: {
           presets: ['airbnb']
         }
+      },
+      {
+        test: /\.json/,
+        loader: 'json-loader'
       }
     ]
   },
   externals: {
-    'cheerio': 'window',
     'react/addons': true,
     'react/lib/ExecutionEnvironment': true,
-    'react/lib/ReactContext': true
+    'react/lib/ReactContext': 'window'
   },
   resolve: {
-    extensions: [ '', '.js', '.jsx' ],
+    extensions: [ '', '.js', '.jsx', '.json' ],
     alias: {
       actions: srcPath + 'actions/',
       helpers: path.join(__dirname, '/../test/helpers'),
