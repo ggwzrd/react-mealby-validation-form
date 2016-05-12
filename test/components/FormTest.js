@@ -24,14 +24,11 @@ describe('<Form />', () => {
   });
 
   it('should implement interface', () => {
-    const wrapper = shallow(<Form />);
-    const renderedForm = wrapper.instance();
-
-    expect(renderedForm.subscribeInput).to.be.a('function');
-    expect(renderedForm.unsubscribe).to.be.a('function');
-    expect(renderedForm.getModel).to.be.a('function');
-    expect(renderedForm.isValid).to.be.a('function');
-    expect(renderedForm.submit).to.be.a('function');
+    expect(Form.prototype.subscribeInput, 'expected to implement subscribeInput(inputComponent)').to.be.a('function');
+    expect(Form.prototype.unsubscribeInput, 'expected to implement unsubscribeInput(inputName)').to.be.a('function');
+    expect(Form.prototype.getModel, 'expected to implement getModel()').to.be.a('function');
+    expect(Form.prototype.isValid, 'expected to implement isValid()').to.be.a('function');
+    expect(Form.prototype.submit, 'expected to implement submit()').to.be.a('function');
   });
 
   it('should create an empty data model', () => {
@@ -44,36 +41,35 @@ describe('<Form />', () => {
   });
 
   it('should subscribe/unsubscribe inputs', () => {
-    const wrapper = shallow(<Form />);
-    const renderedForm = wrapper.instance();
-    const inputStub = React.createElement(DummyInput);
+    const formWrapper = shallow(<Form />);
+    const inputWrapper = shallow(<DummyInput />);
+
+    const renderedForm = formWrapper.instance();
+    const renderedInput = inputWrapper.instance();
+
     let model;
 
     // subscribe the input
-    const testPropertyName = inputStub.getName();
-    renderedForm.subscribeInput(inputStub);
+    const testPropertyName = renderedInput.getName();
+    renderedForm.subscribeInput(renderedInput);
 
     model = renderedForm.getModel();
-    expect(model, 'did not register the input on the model').to.have.property(testPropertyName);
-    expect(model[testPropertyName], 'did not register the input value').to.equal(inputStub.getValue());
+    expect(model, 'expected to register the input on the model').to.have.property(testPropertyName);
+    expect(model[testPropertyName], 'expected to register the input value').to.equal(renderedInput.getValue());
 
     // unsubscribe the input
-    renderedForm.unsubscribe(testPropertyName);
+    renderedForm.unsubscribeInput(testPropertyName);
 
     model = renderedForm.getModel();
-    expect(model, 'did not unsubscribed the input').not.to.have.property(testPropertyName);
+    expect(model, 'expected to unsubscribed the input').not.to.have.property(testPropertyName);
   });
 
   it('should validate the model when mounted', () => {
-    const wrapper = shallow(<Form onValidate={handlersStub.handleValidate}/>);
+    const wrapper = mount(<Form onValidate={handlersStub.handleValidate}/>);
     const renderedForm = wrapper.instance();
 
-    expect(handlersStub.handleValidate.called).to.equal(false);
-
-    wrapper.render();
-
-    expect(handlersStub.handleValidate.calledOnce).to.equal(true);
-    expect(handlersStub.handleValidate.calledWith(renderedForm.getModel())).to.equal(true);
+    expect(handlersStub.handleValidate.calledOnce, 'expected to validate only once').to.equal(true);
+    expect(handlersStub.handleValidate.calledWith(renderedForm.getModel()),'expected to validate the model').to.equal(true);
   });
 
   it('should submit based on validation', () => {
@@ -89,7 +85,7 @@ describe('<Form />', () => {
     wrapper.find('button').simulate('click');
     wrapper.instance().submit();
 
-    expect(handlersStub.handleSubmit.calledTwice).to.equal(true);
+    expect(handlersStub.handleSubmit.calledTwice, 'expected to submit').to.equal(true);
 
     // reset the handler and switch the validation handler
     wrapper.setProps({onValidate: handlersStub.handleFailValidate});
@@ -99,7 +95,7 @@ describe('<Form />', () => {
     wrapper.find('button').simulate('click');
     wrapper.instance().submit();
 
-    expect(handlersStub.handleSubmit.called, 'did submit whit invalid data model').to.equal(false);
+    expect(handlersStub.handleSubmit.called, 'expected to not submit with invalid data model').to.equal(false);
   });
 });
 

@@ -1,4 +1,8 @@
+import _ from 'underscore';
+import warning from 'warning';
+
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 const Form = React.createClass({
   propTypes:{
@@ -6,7 +10,9 @@ const Form = React.createClass({
       React.PropTypes.node,
       React.PropTypes.array
     ]),
-    defaultData: React.PropTypes.object
+    defaultData: React.PropTypes.object,
+    onSubmit: React.PropTypes.func,
+    onValidate: React.PropTypes.func
   },
   childContextTypes: {
     form: React.PropTypes.object
@@ -16,27 +22,107 @@ const Form = React.createClass({
       form: this
     };
   },
-  componentWillMount: function(){
-    this.inputs = {}; // put all the inputs here
+  getDefaultProps: function() {
+    return {
+      onSubmit: () => {},
+      onValidate: (dataModel, next) => {  next(); }
+    };
   },
-  componentDidMount: function(){
-    console.log(this.inputs); // eslint-disable-line
+  getInitialState: function() {
+    return {
+      isValid: false,
+      errors: {},
+    };
   },
-  subscribeInput: function(name, inputComponent){
-    if(!(name in this.inputs)){  
-        this.inputs[name] = inputComponent;
-        // this.inputs[name].setState({value: this.props.defaultData[name]}) ;
-    }else{
-        console.log('%c !Component '+this.inputs[name].props.name+' already exist', "color: #ff0000"); // eslint-disable-line
+  componentWillMount: function() {
+    // register a container for inputs and data
+    this.inputs = {}; 
+    this.model = {}; 
+  },
+  componentDidMount: function() {
+    this._ready = true;
+    this._validateModel();
+  },
+  subscribeInput: function(inputComponent) {
+    const inputName = inputComponent.getName();
+    let initialValue = inputComponent.getValue();
+
+    // default value specified on the field component overrides
+    // the default value specified on the parent form
+    if (!initialValue && this.props.defaultData[inputName]) {
+      initialValue = this.props.defaultData[inputName];
     }
-      
+
+    // input component with same name are not considered valid
+    if(!!this.inputs[inputName]) {
+      warning(true, 'An input with name "' + this.inputs[name].props.name + '" already exists.');
+    } else {
+      // register the input and save the initial value
+      this.inputs[inputName] = inputComponent;
+      this.model[inputName] = initialValue;
+
+      // validate the model when a new input is added
+      this._validateModel();
+    }
   },
-  unsubscribeInput: function(name){
-    this.inputs[name] = null;
+  unsubscribeInput: function(name) {
+    // unregister the input and delete model value
+    this.inputs = _.omit(this.inputs, name);
+    this.model = _.omit(this.model, name);
+
+    // validate the model when an input is removed
+    this._validateModel();
+  },
+  getModel: function() {
+    return this.model;
+  },
+  isValid: function() {
+    return this.state.isValid;
+  },
+  submit: function() {
+    return ReactDOM.findDOMNode(this.refs.form).submit();
+  },
+  _handleSubmit: function(e) {
+    // block the execution in case the form should be submitted
+    // normally and it's valid
+    if (this.props.url && this.state.isValid) {
+      return;
+    }
+
+    if (this.state.isValid) {
+      return this.props.onSubmit(e, this.getModel());
+    }
+
+    // prevent normal form submission
+    e.preventDefault();
+  },
+  _handleValidationResponse: function(errors) {
+    this.setState({
+      isValid: !errors,
+      errors: errors
+    });
+  },
+  _validateModel: function() {
+    // prevent validation if the form 
+    // is not ready yet
+    if (this._ready) {
+      this.props.onValidate(this.getModel(), this._handleValidationResponse);
+    }
   },
   render: function(){
+    let {
+      children, // eslint-disable-line
+      defaultData, // eslint-disable-line
+      onSubmit, // eslint-disable-line
+      onValidate, // eslint-disable-line
+      ...others
+    } = this.props;
+
     return (
-      <form>
+      <form 
+       {...others}
+       ref="form"
+       onSubmit={this._handleSubmit}>
         {this.props.children}
       </form>
     );
