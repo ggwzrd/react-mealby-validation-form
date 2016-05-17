@@ -10,9 +10,7 @@ const TextField = React.createClass({
   },
   getInitialState: function() {
     return {
-      value: undefined,
-      isValid: true,
-      errorMessage: undefined,
+      value: undefined
     };
   },
   componentWillMount: function() {
@@ -20,37 +18,6 @@ const TextField = React.createClass({
   },
   componentWillUnmount: function(){
     this.context.form.unsubscribeInput(this.props.name);
-  },
-  _setValue: function(value){
-    this.setState({value:value});
-  },
-  _setValidity: function(value){
-      this.setState({isValid: value});
-  },
-  _setError: function(message){
-      this._setValidity(false);
-      this.setState({errorMessage: message});
-  },
-  _displayError: function(){
-      if(this._getValidity()){
-        document.body.appendChild(<p>+this._getErrorMessage()+</p>);
-        console.log('I am in');
-      }
-  },
-  _getValue: function(){
-    return this.state.value;
-  },
-  _getName: function(){
-    return this.props.name;
-  },
-  _getType: function(){
-    return this.props.type;
-  },
-  _getValidity: function(){
-      return this.state.isValid;
-  },
-  _getErrorMessage: function(){
-      return this.state.errorMessage;
   },
   _handleChange: function(e){
     var value = e.target.value;

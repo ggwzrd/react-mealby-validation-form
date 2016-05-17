@@ -51,10 +51,12 @@
     "karma-mocha": "^0.2.0",
     "karma-mocha-reporter": "^2.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
+    "karma-sinon": "^1.0.5",
     "karma-sourcemap-loader": "^0.3.5",
     "karma-webpack": "^1.7.0",
     "minimist": "^1.2.0",
     "mocha": "^2.2.5",
+    "mocha-sinon": "^1.1.5",
     "node-sass": "^3.4.2",
     "null-loader": "^0.1.1",
     "open": "0.0.5",
@@ -75,6 +77,9 @@
     "core-js": "^2.0.0",
     "normalize.css": "^4.0.0",
     "react": "^15.0.0",
-    "react-dom": "^15.0.0"
+    "react-dom": "^15.0.0",
+    "reflux": "^0.4.1",
+    "underscore": "^1.8.3",
+    "warning": "^2.1.0"
   }
 }

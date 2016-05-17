@@ -3,56 +3,114 @@
 /*eslint no-console: 0*/
 'use strict';
 
-// Uncomment the following lines to use the react test utilities
-// import React from 'react/addons';
-// const TestUtils = React.addons.TestUtils;
-
 import React from 'react';
-import { mount } from 'enzyme';
+import TestUtils from 'react-addons-test-utils';
+import {shallow, mount} from 'enzyme';
 import Form from 'components/Form';
 
-describe('<Form />', () => {
+const spy = sinon.spy;
 
-  let tree;
+describe('<Form />', () => {
+  const handlersStub = {
+    handleSubmit: spy(),
+    handleValidate: spy(() => { return true; }),
+    handleFailValidate: spy(() => { return false; })
+  };
 
   beforeEach(() => {
-    tree =  mount(
-      <Form>
-        <DummyInput/>
+    handlersStub.handleSubmit.reset();
+    handlersStub.handleValidate.reset();
+    handlersStub.handleFailValidate.reset();
+  });
+
+  it('should implement interface', () => {
+    expect(Form.prototype.subscribeInput, 'expected to implement subscribeInput(inputComponent)').to.be.a('function');
+    expect(Form.prototype.unsubscribeInput, 'expected to implement unsubscribeInput(inputName)').to.be.a('function');
+    expect(Form.prototype.getModel, 'expected to implement getModel()').to.be.a('function');
+    expect(Form.prototype.isValid, 'expected to implement isValid()').to.be.a('function');
+    expect(Form.prototype.submit, 'expected to implement submit()').to.be.a('function');
+  });
+
+  it('should create an empty data model', () => {
+    const wrapper = shallow(<Form />);
+    const renderedForm = wrapper.instance();
+    const dataModel = renderedForm.getModel();
+
+    expect(dataModel).to.be.an('object');
+    expect(dataModel).to.be.empty;
+  });
+
+  it('should subscribe/unsubscribe inputs', () => {
+    const formWrapper = shallow(<Form />);
+    const inputWrapper = shallow(<DummyInput />);
+
+    const renderedForm = formWrapper.instance();
+    const renderedInput = inputWrapper.instance();
+
+    let model;
+
+    // subscribe the input
+    const testPropertyName = renderedInput.getName();
+    renderedForm.subscribeInput(renderedInput);
+
+    model = renderedForm.getModel();
+    expect(model, 'expected to register the input on the model').to.have.property(testPropertyName);
+    expect(model[testPropertyName], 'expected to register the input value').to.equal(renderedInput.getValue());
+
+    // unsubscribe the input
+    renderedForm.unsubscribeInput(testPropertyName);
+
+    model = renderedForm.getModel();
+    expect(model, 'expected to unsubscribed the input').not.to.have.property(testPropertyName);
+  });
+
+  it('should validate the model when mounted', () => {
+    const wrapper = mount(<Form onValidate={handlersStub.handleValidate}/>);
+    const renderedForm = wrapper.instance();
+
+    expect(handlersStub.handleValidate.calledOnce, 'expected to validate only once').to.equal(true);
+    expect(handlersStub.handleValidate.calledWith(renderedForm.getModel()),'expected to validate the model').to.equal(true);
+  });
+
+  it('should submit based on validation', () => {
+    const formWithSubmit = (
+      <Form onSubmit={handlersStub.handleSubmit} onValidate={handlersStub.handleValidate}>
+        <button type="submit"/>
       </Form>
     );
-  });
+    
+    const wrapper = mount(formWithSubmit);
 
-  it('has inputs', () => {
-    const renderedForm = tree.instance();
-    expect(renderedForm.inputs).to.be.an('object');
-  })
+    // simulate submit
+    wrapper.find('button').simulate('click');
+    wrapper.instance().submit();
 
-  it('should be able to subscribe inputs', () => {
-    const renderedForm = tree.instance();
-    expect(renderedForm.inputs).to.have.property('test-field');
-  });
+    expect(handlersStub.handleSubmit.calledTwice, 'expected to submit').to.equal(true);
 
-  it('should be able to unsubscribe inputs', () => {
-    // remove child DummyInput
-    tree.setProps({children: undefined});
+    // reset the handler and switch the validation handler
+    wrapper.setProps({onValidate: handlersStub.handleFailValidate});
+    handlersStub.handleSubmit.reset();
 
-    const renderedForm = tree.instance();
-    expect(renderedForm.inputs).not.to.have.property('test-field');
+    // simulate submit
+    wrapper.find('button').simulate('click');
+    wrapper.instance().submit();
+
+    expect(handlersStub.handleSubmit.called, 'expected to not submit with invalid data model').to.equal(false);
   });
 });
 
 const DummyInput = React.createClass({
-  contextTypes:{
-    form: React.PropTypes.object,
+  value: 'test-value',
+  getName(){ 
+    return 'test-field'; 
   },
-  componentWillMount: function() {
-    this.context.form.subscribeInput('test-field', this);
+  getValue(){ 
+    return this.value; 
   },
-  componentWillUnmount: function() {
-    this.context.form.unsubscribeInput('test-field');
+  setValue(value){ 
+    this.value = value; 
   },
-  render: function() {
+  render(){
     return <span/>;
   }
 });
