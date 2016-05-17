@@ -1,8 +1,8 @@
 import React from 'react';
 
-const TextField = React.createClass({
+const InputField = React.createClass({
   contextTypes: {
-    form: React.PropTypes.object
+    form: React.PropTypes.object.isRequired,
   },
   propTypes: {
     name: React.PropTypes.string.isRequired,
@@ -44,4 +44,4 @@ const TextField = React.createClass({
   }
 });
 
-export default TextField;
+export default InputField;
