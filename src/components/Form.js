@@ -43,9 +43,14 @@ const Form = React.createClass({
     this._ready = true;
     this._validateModel();
   },
+  componentDidUpdate: function(prevProps) {
+    if (prevProps.onValidate !== this.props.onValidate) {
+      this._validateModel();
+    }
+  },
   subscribeInput: function(inputComponent) {
     const inputName = inputComponent.getName();
-    let initialValue = inputComponent.getValue();
+    let initialValue = inputComponent.getDefaultValue();
 
     // default value specified on the field component overrides
     // the default value specified on the parent form
@@ -65,10 +70,12 @@ const Form = React.createClass({
       this._validateModel();
     }
   },
-  unsubscribeInput: function(name) {
+  unsubscribeInput: function(inputComponent) {
+    const inputName = inputComponent.getName();
+    
     // unregister the input and delete model value
-    this.inputs = _.omit(this.inputs, name);
-    this.model = _.omit(this.model, name);
+    this.inputs = _.omit(this.inputs, inputName);
+    this.model = _.omit(this.model, inputName);
 
     // validate the model when an input is removed
     this._validateModel();
@@ -80,7 +87,7 @@ const Form = React.createClass({
     return this.state.isValid;
   },
   submit: function() {
-    return ReactDOM.findDOMNode(this.refs.form).submit();
+    return this._handleSubmit();
   },
   _handleSubmit: function(e) {
     // block the execution in case the form should be submitted
@@ -94,7 +101,7 @@ const Form = React.createClass({
     }
 
     // prevent normal form submission
-    e.preventDefault();
+    e && e.preventDefault();
   },
   _handleValidationResponse: function(errors) {
     this.setState({
@@ -123,7 +130,7 @@ const Form = React.createClass({
        {...others}
        ref="form"
        onSubmit={this._handleSubmit}>
-        {this.props.children}
+        {children}
       </form>
     );
   }
