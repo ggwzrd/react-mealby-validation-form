@@ -22,17 +22,17 @@ describe('<InputField />', () => {
     expect(InputField.prototype.getName, 'Did not implement getName()').to.be.a('function');
     expect(InputField.prototype.getDefaultValue, 'Did not implement getDefaultValue()').to.be.a('function');
     expect(InputField.prototype.setValue, 'Did not implement setValue()').to.be.a('function');
-    expect(InputField.prototype.reset, 'Did not implement reset()').to.be.a('function');
+    expect(InputField.prototype.resetValue, 'Did not implement reset()').to.be.a('function');
   });
 
   it('should render child component with props', () => {
-    const wrapper = mount((
+    const wrapper = mount(
       <DummyForm>
         <InputField name="test-field" defaultValue="default-value">
           <input type="text"/>
         </InputField>
       </DummyForm>
-    ));
+    );
 
     expect(wrapper.find('input'), 'Did not rendered child component').to.have.length(1);
     expect(wrapper.find('input').props().value).to.equal('default-value');
@@ -42,13 +42,13 @@ describe('<InputField />', () => {
   });
 
   it('should be able to subsbribe/unsubscribe to the form', () => {
-    const wrapper = mount((
+    const wrapper = mount(
       <DummyForm>
         <InputField name="test-field" defaultValue="default-value">
           <input type="text"/>
         </InputField>
       </DummyForm>
-    ));
+    );
 
     expect(subscribeInput.calledOnce).to.equal(true);
     expect(unsubscribeInput.called).to.equal(false);
@@ -73,22 +73,35 @@ describe('<InputField />', () => {
   });
 
   it('should render an error if is not valid', () => {
-    const wrapper = mount((
-      <DummyForm>
-        <InputField 
-         name="test-field" 
-         defaultValue="default-value"
-         valid={true}
-         error="This is the error message">
-          <DummyInput/>
-        </InputField>
-      </DummyForm>
-    ), { options: { context: { form: DummyForm } } });
+    const formWrapper = shallow(<DummyForm/>);
+    const fieldWrapper = mount(
+      <InputField name="test-field" defaultValue="default-value">
+        <input type="text"/>
+      </InputField>
+    , {context: {form : formWrapper.instance()}});
 
-    expect(wrapper.find('p.error')).to.have.length(0);
+    expect(fieldWrapper.find('p.error')).to.have.length(0);
 
-    wrapper.setProps({valid: false});
-    expect(wrapper.find('p.error')).to.have.length(1);
+    fieldWrapper.setProps({valid: false});
+    expect(fieldWrapper.find('p.error')).to.have.length(1);
+  });
+
+  it('should reset the value', () => {
+    const formWrapper = shallow(<DummyForm/>);
+    const fieldWrapper = mount(
+      <InputField name="test-field" defaultValue="default-value">
+        <input type="text"/>
+      </InputField>
+    , {context: {form : formWrapper.instance()}});
+
+    const mountedComponent = fieldWrapper.instance();
+    mountedComponent.setValue('new-test-value');
+
+    expect(fieldWrapper.find('input').props().value).to.equal('new-test-value');
+
+    mountedComponent.resetValue();
+
+    expect(fieldWrapper.find('input').props().value).to.equal('default-value');
   });
 });
 
