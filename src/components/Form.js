@@ -127,7 +127,6 @@ const Form = React.createClass({
 
     return (
       <form 
-       {...others}
        ref="form"
        onSubmit={this._handleSubmit}>
         {children}

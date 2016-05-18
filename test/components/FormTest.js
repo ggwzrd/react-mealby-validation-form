@@ -80,6 +80,7 @@ describe('<Form />', () => {
   it('should submit based on validation', () => {
     const wrapper = mount(
       <Form onSubmit={handlersStub.handleSubmit} onValidate={handlersStub.handleValidate}>
+        <DummyInput />
         <button type="submit"/>
       </Form>
     );
