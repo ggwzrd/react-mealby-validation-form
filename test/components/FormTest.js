@@ -47,13 +47,18 @@ describe('<Form />', () => {
     const renderedForm = formWrapper.instance();
     const renderedInput = inputWrapper.instance();
 
-    let model;
+    let model, inputs;
 
     // subscribe the input
     const testPropertyName = renderedInput.getName();
+
     renderedForm.subscribeInput(renderedInput);
 
     model = renderedForm.getModel();
+
+    expect(renderedForm.inputs, 'expected to register the input on the form').to.have.property(testPropertyName);
+    expect(renderedForm.inputs[testPropertyName]).to.be.a(renderedInput);
+
     expect(model, 'expected to register the input on the model').to.have.property(testPropertyName);
     expect(model[testPropertyName], 'expected to register the input value').to.equal(renderedInput.getValue());
 
@@ -75,6 +80,7 @@ describe('<Form />', () => {
   it('should submit based on validation', () => {
     const formWithSubmit = (
       <Form onSubmit={handlersStub.handleSubmit} onValidate={handlersStub.handleValidate}>
+        <DummyInput />
         <button type="submit"/>
       </Form>
     );
@@ -82,10 +88,9 @@ describe('<Form />', () => {
     const wrapper = mount(formWithSubmit);
 
     // simulate submit
-    wrapper.find('button').simulate('click');
-    wrapper.instance().submit();
+    wrapper.simulate('submit');
 
-    expect(handlersStub.handleSubmit.calledTwice, 'expected to submit').to.equal(true);
+    expect(handlersStub.handleSubmit.called, 'expected to submit').to.equal(true);
 
     // reset the handler and switch the validation handler
     wrapper.setProps({onValidate: handlersStub.handleFailValidate});

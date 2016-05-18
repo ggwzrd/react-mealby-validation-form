@@ -120,10 +120,9 @@ const Form = React.createClass({
 
     return (
       <form 
-       {...others}
        ref="form"
        onSubmit={this._handleSubmit}>
-        {this.props.children}
+        {children}
       </form>
     );
   }
