@@ -78,8 +78,6 @@
     "normalize.css": "^4.0.0",
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
-    "reflux": "^0.4.1",
-    "reflux-state-mixin": "^0.7.0",
     "underscore": "^1.8.3",
     "warning": "^2.1.0"
   }
