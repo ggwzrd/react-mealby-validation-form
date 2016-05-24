@@ -43,30 +43,36 @@ describe('<Form />', () => {
   });
 
   it('should subscribe/unsubscribe inputs', () => {
-    const formWrapper = shallow(<Form />);
-    const inputWrapper = shallow(<DummyInput />);
+    const defaultValue = 'default-value';
+    const renderedForm = shallow(<Form defaultData={{testField: defaultValue}}/>).instance();
+    const renderedInput = shallow(<DummyInput />).instance();
 
-    const renderedForm = formWrapper.instance();
-    const renderedInput = inputWrapper.instance();
     const testPropertyName = renderedInput.getName();
+    const nextHandlerStub = spy((formDefaultValue) => {
+      expect(formDefaultValue, 'Did not pass the default value').to.equal(defaultValue);
+    });
 
     // subscribe the input
-    renderedForm.subscribeInput(renderedInput);
-    let model = renderedForm.getModel();
-
-    expect(model, 'Did not register the input in the model').to.have.property(testPropertyName);
-    expect(renderedForm.inputs, 'Did not register the input').to.have.property(testPropertyName);
-
+    renderedForm.subscribeInput(renderedInput, nextHandlerStub);
     const isDummyInput = TestUtils.isCompositeComponentWithType(renderedForm.inputs[testPropertyName], DummyInput);
-    expect(isDummyInput, 'Did not the input component').to.equal(true);
-    expect(model[testPropertyName], 'Did not register the input default value').to.equal(renderedInput.getDefaultValue());
+
+    expect(renderedForm.inputs, 'Did not register the input').to.have.property(testPropertyName);
+    expect(isDummyInput, 'Did not registered a correct input').to.equal(true);
+    expect(nextHandlerStub.calledOnce, 'Did not call the callback').to.equal(true);
 
     // // unsubscribe the input
     renderedForm.unsubscribeInput(renderedInput);
-    model = renderedForm.getModel();
 
     expect(renderedForm.inputs, 'Did not unsubscribe the input').not.to.have.property(testPropertyName);
-    expect(model, 'Did not deleted the input from the model').not.to.have.property(testPropertyName);
+  });
+
+  it('should get the model', () => {
+    const renderedForm = shallow(<Form defaultData={{testField: 'default-value'}}/>).instance();
+    const renderedInput = shallow(<DummyInput />).instance();
+
+    renderedForm.subscribeInput(renderedInput);
+
+    expect(renderedForm.getModel()).to.have.property('testField', 'test-value');
   });
 
   it('should validate the model when mounted', () => {
@@ -109,15 +115,11 @@ describe('<Form />', () => {
 });
 
 const DummyInput = React.createClass({
-  value: 'test-value',
   getName(){ 
-    return 'test-field'; 
+    return 'testField'; 
   },
-  getDefaultValue(){ 
-    return this.value; 
-  },
-  setValue(value){ 
-    this.value = value; 
+  getValue(){ 
+    return 'test-value'; 
   },
   render(){
     return <span/>;

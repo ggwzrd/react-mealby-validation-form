@@ -1,17 +1,8 @@
 import _ from 'underscore';
 import warning from 'warning';
-
 import React from 'react';
-import ReactDOM from 'react-dom';
-import Reflux from 'reflux';
-import FormMixin from './../stores/FormMixin';
-
-var FormStore = Reflux.createStore({
-    mixins: [FormMixin.repository]
-});
 
 const Form = React.createClass({
-    
   propTypes:{
     children: React.PropTypes.oneOfType([
       React.PropTypes.node,
@@ -31,6 +22,7 @@ const Form = React.createClass({
   },
   getDefaultProps: function() {
     return {
+      defaultData: {},
       onSubmit: () => {},
       onValidate: (dataModel, next) => {  next(); }
     };
@@ -42,11 +34,14 @@ const Form = React.createClass({
     };
   },
   componentWillMount: function() {
-    // register a container for inputs and data
-    this.listenTo(FormStore.model,this._handleUpdateModel); 
-    
+    // This will store all the input fields
+    // registered on this form
+    this.inputs = {};
   },
   componentDidMount: function() {
+    // Set the "ready" flag used to control validation.
+    // We don't want to validate the form before it 
+    // gets mounted to the dom
     this._ready = true;
     this._validateModel();
   },
@@ -55,40 +50,44 @@ const Form = React.createClass({
       this._validateModel();
     }
   },
-  subscribeInput: function(inputComponent) {
+  subscribeInput: function(inputComponent, next) {
     const inputName = inputComponent.getName();
-    let initialValue = inputComponent.getDefaultValue();
-
-    // default value specified on the field component overrides
-    // the default value specified on the parent form
-    if (!initialValue && this.props.defaultData[inputName]) {
-      initialValue = this.props.defaultData[inputName];
-    }
 
     // input component with same name are not considered valid
-    if(!!this.inputs[inputName]) {
-      warning(true, 'An input with name "' + this.inputs[name].props.name + '" already exists.');
+    if (!!this.inputs[inputName]) {
+      warning(true, 'An input with name "' + inputName + '" already exists.');
     } else {
-      // register the input and save the initial value
+      let initialValue;
+
+      // Grab the initial value if it exists
+      if (this.props.defaultData && this.props.defaultData[inputName]) {
+        initialValue = this.props.defaultData[inputName];
+      }
+
+      // register the input
       this.inputs[inputName] = inputComponent;
-      FormMixin.actions.modelUpdate(inputName, initialValue);
 
       // validate the model when a new input is added
+      // this will support fields dynamically added
       this._validateModel();
+
+      // run the callback with the default value
+      if (typeof next === 'function') {
+        next.call(inputComponent, initialValue);
+      }
     }
   },
   unsubscribeInput: function(inputComponent) {
     const inputName = inputComponent.getName();
     
-    // unregister the input and delete model value
+    // unregister the input
     this.inputs = _.omit(this.inputs, inputName);
-    this.model = _.omit(this.model, inputName);
 
-    // validate the model when an input is removed
+    // Validate the model when an input is removed.
     this._validateModel();
   },
   getModel: function() {
-    return this.model;
+    return this._createModel();
   },
   isValid: function() {
     return this.state.isValid;
@@ -110,18 +109,25 @@ const Form = React.createClass({
     // prevent normal form submission
     e && e.preventDefault();
   },
-  _handleUpdateModel: function(model){
-      this.model = model;
-  },
   _handleValidationResponse: function(errors) {
     this.setState({
       isValid: !errors,
       errors: errors
     });
   },
+  _createModel: function() {
+    let model = {};
+
+    // grab the value of each registered input
+    _.each(this.inputs, function(component, name){
+      model[name] = component.getValue();
+    });
+
+    // just to be sure...
+    return _.extend({}, model); 
+  },
   _validateModel: function() {
-    // prevent validation if the form 
-    // is not ready yet
+    // prevent validation if the form is not ready yet
     if (this._ready) {
       this.props.onValidate(this.getModel(), this._handleValidationResponse);
     }
