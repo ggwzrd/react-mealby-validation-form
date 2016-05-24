@@ -3,8 +3,15 @@ import warning from 'warning';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Reflux from 'reflux';
+import FormMixin from './../stores/FormMixin';
+
+var FormStore = Reflux.createStore({
+    mixins: [FormMixin.repository]
+});
 
 const Form = React.createClass({
+    
   propTypes:{
     children: React.PropTypes.oneOfType([
       React.PropTypes.node,
@@ -36,8 +43,8 @@ const Form = React.createClass({
   },
   componentWillMount: function() {
     // register a container for inputs and data
-    this.inputs = {}; 
-    this.model = {}; 
+    this.listenTo(FormStore.model,this._handleUpdateModel); 
+    
   },
   componentDidMount: function() {
     this._ready = true;
@@ -64,7 +71,7 @@ const Form = React.createClass({
     } else {
       // register the input and save the initial value
       this.inputs[inputName] = inputComponent;
-      this.model[inputName] = initialValue;
+      FormMixin.actions.modelUpdate(inputName, initialValue);
 
       // validate the model when a new input is added
       this._validateModel();
@@ -102,6 +109,9 @@ const Form = React.createClass({
 
     // prevent normal form submission
     e && e.preventDefault();
+  },
+  _handleUpdateModel: function(model){
+      this.model = model;
   },
   _handleValidationResponse: function(errors) {
     this.setState({
