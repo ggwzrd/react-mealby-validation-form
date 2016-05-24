@@ -1,10 +1,4 @@
 import React from 'react';
-import Reflux from 'reflux';
-import FormMixin from './../stores/FormMixin';
-
-var FormStore = Reflux.createStore({
-    mixins: [FormMixin.repository]
-});
 
 const InputField = React.createClass({
   contextTypes: {
@@ -12,7 +6,8 @@ const InputField = React.createClass({
   },
   propTypes: {
     name: React.PropTypes.string.isRequired,
-    defaultValue: React.PropTypes.string
+    defaultValue: React.PropTypes.string,
+    onChange: React.PropTypes.func
   },
   getInitialState: function() {
     return {
@@ -21,39 +16,72 @@ const InputField = React.createClass({
     };
   },
   componentWillMount: function() {
-    this.listenTo(FormStore.model,this._handleUpdateModel);
-    this.context.form.subscribeInput(this.props.name, this);
+    // The "pristine" value is the default value of the field
+    // and can be passed by the form or directly as a prop 
+    // of this component. Let's keep a reference
+    this._pristineValue = this.props.defaultValue;
+
+    // subscribe the input to the form
+    this._getForm().subscribeInput(this, function(defaultValue) {
+      // If the pristine value wasn't set before let's use the one 
+      // provided by the form
+      if (!this._pristineValue) {
+        this._pristineValue = defaultValue;
+      }
+
+      //Default value can be passed by the form or directly on this input.
+      //This input default props override form's default props
+      this.setState({
+        value: this._pristineValue
+      });
+    });
   },
   componentWillUnmount: function(){
-    this.context.form.unsubscribeInput(this.props.name);
+    // unsubscribe the input from the form
+    this._getForm().unsubscribeInput(this);
   },
   getName: function(){
-      return this.props.name;
+    return this.props.name;
   },
-  getDefaultValue: function(){
-      return this.props.defaultValue;
+  getValue: function(){
+    return this.state.value;
   },
   resetValue: function(){
-      FormMixin.actions.modelUpdate(this.props.name, this.props.defaultValue);
+    // use the pristine value as default value
+    this.setState({value: this._pristineValue});
   },
-  _handleChange: function(e){
-    var value = e.target.value;
+  _handleChangeValue: function(e, customValue) {
+    const value = e ? e.target.value : customValue;
 
-    FormMixin.actions.modelUpdate(this.props.name, value);
+    this.setState({value: value}, function() {
+      if (this.props.onChange) {
+        this.props.onChange(e, value);
+      }
+    }.bind(this));
   },
-  _handleUpdateModel: function(model){
-      this.setState({value:model[this.props.name]});
+  _getForm: function() {
+    return this.context.form;
+  },
+  _createInputElement: function(child) {
+    return React.cloneElement(child, {
+      value: this.state.value, 
+      name: this.props.name, 
+      valid: this.state.isValid,
+      onChange: this._handleChangeValue,
+      error: this.state.error
+    });
   },
   render: function(){
     let {
       name,
       defaultValue, // eslint-disable-line
+      children,
       ...others 
     } = this.props;
-      
+
     return (
       <div {...others}>
-        {React.cloneElement(this.props.children, {value: this.state.value, name: name, isValid: this.state.isValid , error: this.state.error})}
+        {React.Children.map(children, this._createInputElement)}
       </div>
     );
   }

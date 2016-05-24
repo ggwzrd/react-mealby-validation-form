@@ -9,7 +9,7 @@ import {shallow, mount} from 'enzyme';
 import InputField from 'components/InputField';
 
 const spy = sinon.spy;
-const subscribeInput = spy();
+const subscribeInput = spy((component, next) => { next.call(component,'default-value'); });
 const unsubscribeInput = spy();
 
 describe('<InputField />', () => {
@@ -20,25 +20,22 @@ describe('<InputField />', () => {
 
   it('should implement interface', () => {
     expect(InputField.prototype.getName, 'Did not implement getName()').to.be.a('function');
-    expect(InputField.prototype.getDefaultValue, 'Did not implement getDefaultValue()').to.be.a('function');
-    expect(InputField.prototype.setValue, 'Did not implement setValue()').to.be.a('function');
+    expect(InputField.prototype.getValue, 'Did not implement getValue()').to.be.a('function');
     expect(InputField.prototype.resetValue, 'Did not implement reset()').to.be.a('function');
   });
 
-  it('should render child component with props', () => {
+  it('should render child component', () => {
     const wrapper = mount(
       <DummyForm>
-        <InputField name="test-field" defaultValue="default-value">
-          <input type="text"/>
+        <InputField name="test-field" defaultValue="custom-value">
+          <DummyInput/>
         </InputField>
       </DummyForm>
     );
 
-    expect(wrapper.find('input'), 'Did not rendered child component').to.be.an('object');
-    expect(wrapper.find('input').props().value).to.equal('default-value');
-    expect(wrapper.find('input').props().name).to.equal('test-field');
-    expect(wrapper.find('input').props().isValid).to.equal(true);
-    //expect(wrapper.find('input').props().error).to.equal(null);
+    expect(wrapper.find(DummyInput), 'Did not rendered child component').to.have.length(1);
+    expect(wrapper.find(DummyInput).props()).to.have.all.keys(['value','name','valid','error','onChange']);
+    expect(wrapper.find(DummyInput).prop('value')).to.equal('custom-value');
   });
 
   it('should be able to subsbribe/unsubscribe to the form', () => {
@@ -58,18 +55,19 @@ describe('<InputField />', () => {
     expect(unsubscribeInput.calledOnce).to.equal(true);
   });
 
-  it('should change the child value when the value change', () => {
+  it('should change the state value when child value change', () => {
     const formWrapper = shallow(<DummyForm/>);
-    const fieldWrapper = shallow(
+    const fieldWrapper = mount(
       <InputField name="test-field" defaultValue="default-value">
         <input type="text"/>
       </InputField>
     , {context: {form : formWrapper.instance()}});
 
-    const mountedComponent = fieldWrapper.instance();
-    mountedComponent.setValue('new-test-value');
 
-    expect(fieldWrapper.find('input').props().value).to.equal('new-test-value');
+    fieldWrapper.find('input').simulate('change',{target:{value:'custom-value'}});
+
+    const mountedComponent = fieldWrapper.instance();
+    expect(mountedComponent.getValue()).to.equal('custom-value');
   });
 
   it('should render an error if is not valid', () => {
@@ -82,7 +80,7 @@ describe('<InputField />', () => {
 
     expect(fieldWrapper.find('p.error')).to.have.length(0);
 
-    fieldWrapper.setProps({valid: false});
+    fieldWrapper.setState({isValid: false});
     expect(fieldWrapper.find('p.error')).to.have.length(1);
   });
 
@@ -95,13 +93,13 @@ describe('<InputField />', () => {
     , {context: {form : formWrapper.instance()}});
 
     const mountedComponent = fieldWrapper.instance();
-    mountedComponent.setValue('new-test-value');
 
-    expect(fieldWrapper.find('input').props().value).to.equal('new-test-value');
+    fieldWrapper.find('input').simulate('change',{target:{value:'custom-value'}});
+    expect(mountedComponent.getValue()).to.equal('custom-value');
 
     mountedComponent.resetValue();
 
-    expect(fieldWrapper.find('input').props().value).to.equal('default-value');
+    expect(mountedComponent.getValue()).to.equal('default-value');
   });
 });
 
@@ -127,7 +125,6 @@ const DummyForm = React.createClass({
 
 const DummyInput = React.createClass({
   render: function() {
-    console.log(this.props.error);
     return (
       <div>
         {this.props.value}
