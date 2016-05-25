@@ -1,28 +1,34 @@
 import React from 'react';
 
-const InputField = React.createClass({
-  contextTypes: {
-    form: React.PropTypes.object.isRequired,
-  },
-  propTypes: {
+export default class InputField extends React.Component{
+  static contextTypes = {
+    form: React.PropTypes.object.isRequired
+  };
+
+  static propTypes = {
     name: React.PropTypes.string.isRequired,
     defaultValue: React.PropTypes.string,
     onChange: React.PropTypes.func
-  },
-  getInitialState: function() {
-    return {
+  };
+
+  constructor(props, context) {
+    super(props, context);
+
+    //set the initial state
+    this.state = {
       isValid: true,
       error: null
     };
-  },
-  componentWillMount: function() {
+  }
+
+  componentWillMount() {
     // The "pristine" value is the default value of the field
     // and can be passed by the form or directly as a prop 
     // of this component. Let's keep a reference
     this._pristineValue = this.props.defaultValue;
 
     // subscribe the input to the form
-    this._getForm().subscribeInput(this, function(defaultValue) {
+    this._getForm().subscribeInput(this, function(defaultValue){
       // If the pristine value wasn't set before let's use the one 
       // provided by the form
       if (!this._pristineValue) {
@@ -35,34 +41,41 @@ const InputField = React.createClass({
         value: this._pristineValue
       });
     });
-  },
-  componentWillUnmount: function(){
+  }
+
+  componentWillUnmount() {
     // unsubscribe the input from the form
     this._getForm().unsubscribeInput(this);
-  },
-  getName: function(){
+  }
+
+  getName() {
     return this.props.name;
-  },
-  getValue: function(){
+  }
+
+  getValue() {
     return this.state.value;
-  },
-  resetValue: function(){
+  }
+
+  resetValue() {
     // use the pristine value as default value
     this.setState({value: this._pristineValue});
-  },
-  _handleChangeValue: function(e, customValue) {
+  }
+
+  _handleChangeValue = (e, customValue) => {
     const value = e ? e.target.value : customValue;
 
-    this.setState({value: value}, function() {
+    this.setState({value: value}, () => {
       if (this.props.onChange) {
         this.props.onChange(e, value);
       }
-    }.bind(this));
-  },
-  _getForm: function() {
+    });
+  }
+
+  _getForm = () =>  {
     return this.context.form;
-  },
-  _createInputElement: function(child) {
+  }
+
+  _createInputElement = (child) => {
     return React.cloneElement(child, {
       value: this.state.value, 
       name: this.props.name, 
@@ -70,8 +83,9 @@ const InputField = React.createClass({
       onChange: this._handleChangeValue,
       error: this.state.error
     });
-  },
-  render: function(){
+  }
+
+  render() {
     let {
       name,
       defaultValue, // eslint-disable-line
@@ -85,6 +99,4 @@ const InputField = React.createClass({
       </div>
     );
   }
-});
-
-export default InputField;
+}

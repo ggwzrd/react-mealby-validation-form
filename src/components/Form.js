@@ -2,8 +2,12 @@ import _ from 'underscore';
 import warning from 'warning';
 import React from 'react';
 
-const Form = React.createClass({
-  propTypes:{
+export default class Form extends React.Component {
+  static childContextTypes = {
+    form: React.PropTypes.object
+  };
+
+  static propTypes = {
     children: React.PropTypes.oneOfType([
       React.PropTypes.node,
       React.PropTypes.array
@@ -11,46 +15,49 @@ const Form = React.createClass({
     defaultData: React.PropTypes.object,
     onSubmit: React.PropTypes.func,
     onValidate: React.PropTypes.func
-  },
-  childContextTypes: {
-    form: React.PropTypes.object
-  },
-  getChildContext: function() {
-    return {
-      form: this
-    };
-  },
-  getDefaultProps: function() {
-    return {
-      defaultData: {},
-      onSubmit: () => {},
-      onValidate: (dataModel, next) => {  next(); }
-    };
-  },
-  getInitialState: function() {
-    return {
-      isValid: false,
-      errors: {},
-    };
-  },
-  componentWillMount: function() {
+  };
+
+  static defaultProps = {
+    defaultData: {},
+    onSubmit: () => {},
+    // validate with no errors as default
+    onValidate: (dataModel, next) => {  next(); } 
+  };
+
+  constructor(props, context){
+    super(props, context);
     // This will store all the input fields
     // registered on this form
     this.inputs = {};
-  },
-  componentDidMount: function() {
+
+    // register the initial state
+    this.state = {
+      isValid: false,
+      errors: {},
+    };
+  }
+
+  getChildContext() {
+    return {
+      form: this
+    };
+  }
+
+  componentDidMount() {
     // Set the "ready" flag used to control validation.
     // We don't want to validate the form before it 
     // gets mounted to the dom
     this._ready = true;
     this._validateModel();
-  },
-  componentDidUpdate: function(prevProps) {
+  }
+
+  componentDidUpdate(prevProps) {
     if (prevProps.onValidate !== this.props.onValidate) {
       this._validateModel();
     }
-  },
-  subscribeInput: function(inputComponent, next) {
+  }
+
+  subscribeInput(inputComponent, next) {
     const inputName = inputComponent.getName();
 
     // input component with same name are not considered valid
@@ -76,8 +83,9 @@ const Form = React.createClass({
         next.call(inputComponent, initialValue);
       }
     }
-  },
-  unsubscribeInput: function(inputComponent) {
+  }
+
+  unsubscribeInput(inputComponent) {
     const inputName = inputComponent.getName();
     
     // unregister the input
@@ -85,17 +93,21 @@ const Form = React.createClass({
 
     // Validate the model when an input is removed.
     this._validateModel();
-  },
-  getModel: function() {
+  }
+
+  getModel() {
     return this._createModel();
-  },
-  isValid: function() {
+  }
+
+  isValid() {
     return this.state.isValid;
-  },
-  submit: function() {
+  }
+
+  submit() {
     return this._handleSubmit();
-  },
-  _handleSubmit: function(e) {
+  }
+
+  _handleSubmit = (e) => {
     // block the execution in case the form should be submitted
     // normally and it's valid
     if (this.props.url && this.state.isValid) {
@@ -108,31 +120,35 @@ const Form = React.createClass({
 
     // prevent normal form submission
     e && e.preventDefault();
-  },
-  _handleValidationResponse: function(errors) {
+  }
+
+  _handleValidationResponse = (errors) => {
     this.setState({
       isValid: !errors,
       errors: errors
     });
-  },
-  _createModel: function() {
+  }
+
+  _createModel = () => {
     let model = {};
 
     // grab the value of each registered input
-    _.each(this.inputs, function(component, name){
+    _.each(this.inputs, (component, name) => {
       model[name] = component.getValue();
     });
 
     // just to be sure...
     return _.extend({}, model); 
-  },
-  _validateModel: function() {
+  }
+
+  _validateModel = () => {
     // prevent validation if the form is not ready yet
     if (this._ready) {
       this.props.onValidate(this.getModel(), this._handleValidationResponse);
     }
-  },
-  render: function(){
+  }
+
+  render() {
     let {
       children, // eslint-disable-line
       defaultData, // eslint-disable-line
@@ -149,6 +165,4 @@ const Form = React.createClass({
       </form>
     );
   }
-});
-
-export default Form;
+}
