@@ -21,7 +21,7 @@ export default class Form extends React.Component {
     defaultData: {},
     onSubmit: () => {},
     // validate with no errors as default
-    onValidate: (dataModel, next) => {  next(); } 
+    onValidate: (dataModel, next) => {next();} 
   };
 
   constructor(props, context){
@@ -33,7 +33,7 @@ export default class Form extends React.Component {
     // register the initial state
     this.state = {
       isValid: false,
-      errors: {},
+      errors: {}
     };
   }
 
@@ -45,7 +45,7 @@ export default class Form extends React.Component {
 
   componentDidMount() {
     // Set the "ready" flag used to control validation.
-    // We don't want to validate the form before it 
+    // We don't want to validate the form before it
     // gets mounted to the dom
     this._ready = true;
     this._validateModel();
@@ -154,7 +154,6 @@ export default class Form extends React.Component {
       defaultData, // eslint-disable-line
       onSubmit, // eslint-disable-line
       onValidate, // eslint-disable-line
-      ...others
     } = this.props;
 
     return (

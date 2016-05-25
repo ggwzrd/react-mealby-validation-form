@@ -3,19 +3,29 @@ require('styles/App.css');
 
 import React from 'react';
 import Form from './Form';
-import TextField from './TextField';
+import InputField from './InputField';
+import SkillInput from './SkillInput';
 
 const AppComponent = React.createClass({
   render: function(){
-    var data = {
-      first_name: 'Giulio',
-      email: 'giulio@email.com'
-    };
-
     return (
       <div className="index">
-        <Form defaultData={data}>
-          <InputField name="first_name"/>
+        <Form>
+          <InputField name="nome">
+            <input type="text"/>
+          </InputField>
+
+          <InputField name="email" defaultValue="example@email.com">
+            <input type="email"/>
+          </InputField>
+
+          <InputField name="password">
+            <input type="password"/>
+          </InputField>
+
+          <InputField name="skills">
+            <SkillInput/>
+          </InputField>
         </Form>
       </div>
     );

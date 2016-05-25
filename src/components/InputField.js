@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default class InputField extends React.Component{
+export default class InputField extends React.Component {
   static contextTypes = {
     form: React.PropTypes.object.isRequired
   };
@@ -23,13 +23,13 @@ export default class InputField extends React.Component{
 
   componentWillMount() {
     // The "pristine" value is the default value of the field
-    // and can be passed by the form or directly as a prop 
+    // and can be passed by the form or directly as a prop
     // of this component. Let's keep a reference
     this._pristineValue = this.props.defaultValue;
 
     // subscribe the input to the form
     this._getForm().subscribeInput(this, function(defaultValue){
-      // If the pristine value wasn't set before let's use the one 
+      // If the pristine value wasn't set before let's use the one
       // provided by the form
       if (!this._pristineValue) {
         this._pristineValue = defaultValue;
@@ -62,7 +62,11 @@ export default class InputField extends React.Component{
   }
 
   _handleChangeValue = (e, customValue) => {
-    const value = e ? e.target.value : customValue;
+    let value = customValue;
+
+    if (!value && e) {
+      value = e.target.value;
+    }
 
     this.setState({value: value}, () => {
       if (this.props.onChange) {
@@ -87,7 +91,7 @@ export default class InputField extends React.Component{
 
   render() {
     let {
-      name,
+      name, // eslint-disable-line
       defaultValue, // eslint-disable-line
       children,
       ...others 
