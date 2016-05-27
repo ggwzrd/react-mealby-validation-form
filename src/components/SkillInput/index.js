@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import Ratings from './Ratings';
 
 export default class SkillInput extends React.Component {
   static propTypes = {
@@ -33,16 +34,30 @@ export default class SkillInput extends React.Component {
 
     this.props.onChange(e, currentValue);
   }
-
-  _createItem(item) {
+  _handleChangeRating = (name, newRating) => {
+    const currentValue = _.extend([], this.props.value);
+    const newValues = currentValue.map(function(item){
+      if(item.name === name){
+        item.rating = newRating;         
+      };
+      return item;
+    });
+    this.props.onChange(null, newValues);
+  }
+  _createItem = (item) => {
     return (
-      <li key={item.name}>{item.name} - {item.rating}</li>
+      <li key={item.name}>
+        {item.name} - 
+        <Ratings 
+          onChange={this._handleChangeRating.bind(this,item.name)} 
+          value={item.rating}
+        />
+      </li>
     );
   }
-
+  
   render() {
     const currentValue = this.props.value || [];
-
     return (
       <div>
         <input 

@@ -5,8 +5,10 @@ import React from 'react';
 import Form from './Form';
 import InputField from './InputField';
 import SkillInput from './SkillInput';
+import List from './ListCombo';
 
 const AppComponent = React.createClass({
+  
   render: function(){
     return (
       <div className="index">
@@ -25,6 +27,9 @@ const AppComponent = React.createClass({
 
           <InputField name="skills">
             <SkillInput/>
+          </InputField>
+          <InputField name="list">
+            <List />
           </InputField>
         </Form>
       </div>
