@@ -7,6 +7,15 @@ import InputField from './InputField';
 import SkillInput from './SkillInput';
 import List from './ListCombo';
 
+const data= [
+      {name: 'Obey',
+       size:['M','L', 'XL']},
+      {name: 'Vans',
+       size:['S','L', 'XL']},
+      {name: 'Convers',
+       size:['S','M', 'L']}
+    ];
+
 const AppComponent = React.createClass({
   
   render: function(){
@@ -28,8 +37,8 @@ const AppComponent = React.createClass({
           <InputField name="skills">
             <SkillInput/>
           </InputField>
-          <InputField name="list">
-            <List />
+          <InputField name="list" >
+            <List data={data}/>
           </InputField>
         </Form>
       </div>
